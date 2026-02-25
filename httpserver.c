@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 #include <stdio.h>
 #include <netinet/in.h>
+#include <unistd.h>
 
 
 int main(){
@@ -29,6 +30,7 @@ int main(){
 
     if(bind(socketfd, (struct sockaddr *)&addr, sizeof addr) == -1){
         perror("An error has occured while binding the socket");
+        close(socketfd);
         return -1;
     };
 
@@ -38,5 +40,20 @@ int main(){
         perror("Failed to listen on socket");
     }
 
+    while (true){
+        // The 2nd and 3rd argument can be a pointer to an addr struct of the connected process
+        int connfd = accept(socketfd, NULL, NULL);
+        if(connfd == -1){
+            perror("Failed to accept connection");
+            close(socketfd);
+            return -1;
+        }
+
+        
+        close(connfd);
+    }
+
+    close(socketfd);
+    return 0;
 }   
 
