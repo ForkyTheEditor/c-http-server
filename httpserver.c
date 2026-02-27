@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
+#define GET "GET"
 
 int main(){
     // PF_INET = IPv4 protocol
@@ -49,11 +50,37 @@ int main(){
             return -1;
         }
 
+        ssize_t bytes_read;
+        char buf[2048];
+
+        bytes_read = read(connfd, buf, sizeof(buf));
+        if(bytes_read == -1){
+            perror("Failed to read connection");
+            close(connfd);
+            close(socketfd);
+            return -1;
+        }
         
+        printf(buf);
+
+        int current_index = 0;
+        while( current_index < bytes_read){
+            if(buf[current_index] == ' '){
+                printf("f");
+            }
+            
+            current_index++;
+        }
+
+        if (shutdown(connfd, SHUT_RDWR) == -1) {
+            perror("Failed to shutdown connection!");
+            close(connfd);
+            close(socketfd);
+            return -1;
+        }
         close(connfd);
     }
 
     close(socketfd);
     return 0;
 }   
-
