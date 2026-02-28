@@ -3,8 +3,46 @@
 #include <stdio.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <string.h>
 
 #define GET "GET"
+
+
+void slice(const char* str, char* result, size_t start, size_t end) {
+    strncpy(result, str + start, end - start);
+}
+
+
+void parseRequest(char *buffer){
+    char *req_type;
+    char *path;
+    char *httpv;
+
+    int current_index = 0;
+    char *res;
+
+    res = strtok(buffer, " ");
+    
+    while( res != NULL){
+        if(current_index == 0){
+            req_type = res;
+        }
+        else if(current_index == 1){
+            path = res;
+        }
+        else if(current_index == 2){
+            httpv = res;
+        }
+        res = strtok(NULL, " ");
+        current_index++;
+    }
+
+    if(strcmp(req_type, GET) == 0){
+        // GET Request
+    }
+    
+
+}
 
 int main(){
     // PF_INET = IPv4 protocol
@@ -42,7 +80,7 @@ int main(){
     }
 
     while (true){
-        // The 2nd and 3rd argument can be a pointer to an addr struct of the connected process
+        // The 2nd and 3rd argument can be a pointer to an addr struct of the connected process/device
         int connfd = accept(socketfd, NULL, NULL);
         if(connfd == -1){
             perror("Failed to accept connection");
@@ -61,16 +99,7 @@ int main(){
             return -1;
         }
         
-        printf(buf);
-
-        int current_index = 0;
-        while( current_index < bytes_read){
-            if(buf[current_index] == ' '){
-                printf("f");
-            }
-            
-            current_index++;
-        }
+        parseRequest(buf);
 
         if (shutdown(connfd, SHUT_RDWR) == -1) {
             perror("Failed to shutdown connection!");
@@ -84,3 +113,5 @@ int main(){
     close(socketfd);
     return 0;
 }   
+
+
