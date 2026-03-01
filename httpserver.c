@@ -6,42 +6,42 @@
 #include <string.h>
 
 #define GET "GET"
-
+#define HTTPV11 "HTTP/1.1" 
 
 void slice(const char* str, char* result, size_t start, size_t end) {
     strncpy(result, str + start, end - start);
 }
 
-
-void parseRequest(char *buffer){
+char *parseRequest(char *buffer, char *response){
     char *req_type;
     char *path;
     char *httpv;
 
     int current_index = 0;
-    char *res;
+    char *result;
 
-    res = strtok(buffer, " ");
+    result = strtok(buffer, " ");
     
-    while( res != NULL){
+    while( result != NULL){
         if(current_index == 0){
-            req_type = res;
+            req_type = result;
         }
         else if(current_index == 1){
-            path = res;
+            path = result;
         }
         else if(current_index == 2){
-            httpv = res;
+            httpv = result;
         }
-        res = strtok(NULL, " ");
+        result = strtok(NULL, " ");
         current_index++;
     }
 
     if(strcmp(req_type, GET) == 0){
         // GET Request
+        sprintf(response, "%s 200 OK\r\n\r\nRequested path: %s \r\n", HTTPV11, path);
     }
     
-
+    return response;
 }
 
 int main(){
@@ -61,9 +61,9 @@ int main(){
         .sin_family = AF_INET,
         .sin_port = htons(80)
     };
-    int res = inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr.s_addr);
+    int result = inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr.s_addr);
 
-    if(res == 0 ){
+    if(result == 0 ){
         perror("inet_pton: No valid network string for binding");
     }
 
@@ -98,8 +98,16 @@ int main(){
             close(socketfd);
             return -1;
         }
+
         
-        parseRequest(buf);
+
+        char resp[2048];
+        parseRequest(buf, resp);
+        int len = strlen(resp);
+
+        printf(resp);
+        printf("%d", len);
+        send(connfd, resp, len, 0);
 
         if (shutdown(connfd, SHUT_RDWR) == -1) {
             perror("Failed to shutdown connection!");
@@ -113,5 +121,3 @@ int main(){
     close(socketfd);
     return 0;
 }   
-
-
