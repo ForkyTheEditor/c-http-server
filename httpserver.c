@@ -4,45 +4,8 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <string.h>
+#include "prochttp.h"
 
-#define GET "GET"
-#define HTTPV11 "HTTP/1.1" 
-
-void slice(const char* str, char* result, size_t start, size_t end) {
-    strncpy(result, str + start, end - start);
-}
-
-char *parseRequest(char *buffer, char *response){
-    char *req_type;
-    char *path;
-    char *httpv;
-
-    int current_index = 0;
-    char *result;
-
-    result = strtok(buffer, " ");
-    
-    while( result != NULL){
-        if(current_index == 0){
-            req_type = result;
-        }
-        else if(current_index == 1){
-            path = result;
-        }
-        else if(current_index == 2){
-            httpv = result;
-        }
-        result = strtok(NULL, " ");
-        current_index++;
-    }
-
-    if(strcmp(req_type, GET) == 0){
-        // GET Request
-        sprintf(response, "%s 200 OK\r\n\r\nRequested path: %s \r\n", HTTPV11, path);
-    }
-    
-    return response;
-}
 
 int main(){
     // PF_INET = IPv4 protocol
@@ -99,15 +62,15 @@ int main(){
             return -1;
         }
 
-        
-
         char resp[2048];
         parseRequest(buf, resp);
         int len = strlen(resp);
 
-        printf(resp);
-        printf("%d", len);
-        send(connfd, resp, len, 0);
+        int bytes_sent = send(connfd, resp, len, 0);
+
+        if(bytes_sent == -1){
+            perror("Send failed");
+        }
 
         if (shutdown(connfd, SHUT_RDWR) == -1) {
             perror("Failed to shutdown connection!");
