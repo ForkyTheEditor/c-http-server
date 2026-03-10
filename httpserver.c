@@ -62,7 +62,7 @@ int main(){
             return -1;
         }
 
-        char resp[2048];
+        char resp[16384];
         parseRequest(buf, resp);
         int len = strlen(resp);
 
